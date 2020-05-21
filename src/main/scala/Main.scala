@@ -1,3 +1,4 @@
+
 import cats.effect.concurrent.MVar
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all._
@@ -33,5 +34,18 @@ object Main extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
     gracefulShutdownProgram.use(_ => IO.never)
+
+
+class ConsolePathPrinter[F[_] : Applicative] extends Printer[F, Path] {
+  override def printName(file: Path): F[Unit] = println(file.getFileName.toString).pure[F]
+}
+
+object TypeClasses {
+  def main(args: Array[String]): Unit = {
+    implicit val fs: RFS[Id] = new RFS[Id]
+    implicit val printer: ConsolePathPrinter[Id] = new ConsolePathPrinter[Id]
+    val manager = new FileManager[Id, Path, Path]
+    manager.execute(Paths.get("."))
+  }
 
 }
